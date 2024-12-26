@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useHistory } from 'react-router-dom';
 
 import { toast } from 'react-toastify';
@@ -16,8 +16,10 @@ import MessagesList from '../MessagesList';
 import api from '../../services/api';
 import { ReplyMessageProvider } from '../../context/ReplyingMessage/ReplyingMessageContext';
 import toastError from '../../errors/toastError';
+import SearchDrawer from '../SearchDrawer';
+import { MessageListContext } from '../../context/MessageList/MessageListContext';
 
-const drawerWidth = 320;
+const drawerWidth = 640;
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -69,7 +71,7 @@ const useStyles = makeStyles((theme) => ({
       easing: theme.transitions.easing.easeOut,
       duration: theme.transitions.duration.enteringScreen,
     }),
-    marginRight: 0,
+    marginRight: -320,
   },
 }));
 
@@ -78,7 +80,9 @@ const Ticket = () => {
   const history = useHistory();
   const classes = useStyles();
 
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const { isOpen, setIsOpen, drawerOpen, setDrawerOpen } =
+    useContext(MessageListContext);
+
   const [loading, setLoading] = useState(true);
   const [contact, setContact] = useState({});
   const [ticket, setTicket] = useState({});
@@ -136,7 +140,13 @@ const Ticket = () => {
   }, [ticketId, history]);
 
   const handleDrawerOpen = () => {
-    setDrawerOpen(true);
+    if (!isOpen) {
+      setDrawerOpen(true);
+    }
+    setIsOpen(false);
+    setTimeout(() => {
+      setDrawerOpen(true);
+    }, 500);
   };
 
   const handleDrawerClose = () => {
@@ -149,7 +159,7 @@ const Ticket = () => {
         variant="outlined"
         elevation={0}
         className={clsx(classes.mainWrapper, {
-          [classes.mainWrapperShift]: drawerOpen,
+          [classes.mainWrapperShift]: drawerOpen || isOpen,
         })}
       >
         <TicketHeader loading={loading}>
@@ -172,6 +182,7 @@ const Ticket = () => {
           <MessageInput ticketStatus={ticket.status} />
         </ReplyMessageProvider>
       </Paper>
+      <SearchDrawer />
       <ContactDrawer
         open={drawerOpen}
         handleDrawerClose={handleDrawerClose}
